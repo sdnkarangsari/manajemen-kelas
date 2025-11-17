@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - SDN Karangsari</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Additional styles for logo */
+        .logo-section {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+        }
+        
+        .school-logo {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 15px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 3px solid white;
+        }
+        
+        .logo-fallback {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .school-info h1 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+            font-size: 24px;
+        }
+        
+        .school-info p {
+            color: #7f8c8d;
+            margin-bottom: 0;
+            font-size: 14px;
+        }
+        
+        /* App description styles */
+        .app-description {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+        
+        .app-description h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .app-description p {
+            color: #7f8c8d;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 0;
+        }
+        
+        /* Copyright styles */
+        .copyright {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            color: #95a5a6;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <!-- Logo Section -->
+            <div class="logo-section">
+                <img src="assets/images/logo.png" alt="Logo SDN Karangsari" class="school-logo" 
+                     onerror="this.style.display='none'; document.getElementById('logoFallback').style.display='flex';">
+                <div id="logoFallback" class="logo-fallback" style="display: none;">
+                    🎓
+                </div>
+                <div class="school-info">
+                    <h1>SD NEGERI KARANGSARI</h1>
+                    <p>Sistem Manajemen Kelas Digital</p>
+                </div>
+            </div>
+            
+            <form id="loginForm">
+                <div class="input-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="Masukkan username" required>
+                </div>
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Masukkan password" required>
+                </div>
+                <button type="submit" class="btn-login">Login</button>
+            </form>
+            
+            <div id="errorMessage" class="error-message"></div>
+            
+            <!-- App Description -->
+            <div class="app-description">
+                <h4>Tentang Aplikasi</h4>
+                <p>Sistem Manajemen Kelas Digital SDN Karangsari membantu guru dalam mengelola data siswa, nilai akademik, kehadiran, dan menghasilkan laporan lengkap untuk evaluasi pembelajaran.</p>
+            </div>
+            
+            <!-- Copyright -->
+            <div class="copyright">
+                &copy; 2025 oleh Nadzir. Semua hak dilindungi.
+            </div>
+        </div>
+    </div>
+
+    <!-- Load scripts in correct order -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/auth.js"></script>
+    
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('errorMessage');
+            
+            console.log('=== LOGIN ATTEMPT ===');
+            console.log('Username:', username);
+            console.log('Password:', password);
+            
+            errorMessage.textContent = '';
+            
+            const result = await login(username, password);
+            
+            console.log('Login result:', result);
+            
+            if (result.success) {
+                console.log('✅ Redirecting to dashboard...');
+                window.location.href = 'pages/dashboard.html';
+            } else {
+                errorMessage.textContent = result.message;
+                console.error('❌ Login failed:', result.message);
+            }
+        });
+
+        // Test logo loading
+        window.addEventListener('load', () => {
+            console.log('🔄 Testing logo loading...');
+            const logo = document.querySelector('.school-logo');
+            if (logo.complete && logo.naturalHeight !== 0) {
+                console.log('✅ Logo loaded successfully');
+            } else {
+                console.log('⚠️ Using fallback logo');
+            }
+        });
+    </script>
+</body>
+</html>
