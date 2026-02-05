@@ -1,0 +1,2229 @@
+<!doctype html>
+<html lang="id" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem Manajemen Sekolah SD</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Satoshi:wght@400;500;600;700&amp;family=DM+Sans:wght@400;500;600;700&amp;family=Outfit:wght@400;500;600;700&amp;family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    html, body { height: 100%; width: 100%; margin: 0; padding: 0; }
+    body { font-family: 'Geist', sans-serif; }
+    
+    :root {
+      --primary-start: #3b82f6;
+      --primary-end: #06b6d4;
+      --primary-dark: #1e40af;
+    }
+    
+    .theme-ocean { --primary-start: #3b82f6; --primary-end: #06b6d4; --primary-dark: #1e40af; --primary-light: #60a5fa; }
+    .theme-forest { --primary-start: #10b981; --primary-end: #34d399; --primary-dark: #059669; --primary-light: #6ee7b7; }
+    .theme-sunset { --primary-start: #ef4444; --primary-end: #f97316; --primary-dark: #dc2626; --primary-light: #f87171; }
+    .theme-purple { --primary-start: #8b5cf6; --primary-end: #a78bfa; --primary-dark: #7c3aed; --primary-light: #c4b5fd; }
+    
+    .gradient-primary {
+      background: linear-gradient(135deg, var(--primary-start) 0%, var(--primary-end) 100%);
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-start) 0%, var(--primary-end) 100%);
+      color: white;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    .btn-primary:hover { 
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    .btn-primary:active { transform: translateY(0); }
+    
+    .glass-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+      border-radius: 16px;
+    }
+    
+    .glass-dark {
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    input, select, textarea { 
+      color: #111827 !important;
+      font-family: inherit;
+    }
+    input::placeholder { color: #9ca3af !important; }
+    
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary-start) !important;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+    }
+    
+    .stat-card { 
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .stat-card:hover { 
+      transform: translateY(-6px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+    }
+    
+    .modal-overlay {
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(8px);
+      animation: fadeIn 0.2s ease-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes slideIn {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
+    .glass-card {
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    .nav-btn {
+      position: relative;
+      overflow: hidden;
+      color: #cbd5e1;
+    }
+    
+    .nav-btn:hover {
+      color: #ffffff;
+    }
+    
+    .nav-btn.active {
+      color: #ffffff;
+      background: rgba(59, 130, 246, 0.15);
+      border-left: 3px solid #3b82f6;
+    }
+    
+    .table-row {
+      transition: background-color 0.2s ease;
+    }
+    
+    .table-row:hover {
+      background-color: rgba(59, 130, 246, 0.05);
+    }
+
+    /* ===== TEXT COLOR FIX ===== */
+    th {
+      color: #e2e8f0 !important;
+      font-weight: 900;
+    }
+
+    td {
+      color: #f1f5f9 !important;
+    }
+
+    tbody td {
+      color: #e2e8f0 !important;
+    }
+
+    .text-slate-300 {
+      color: #cbd5e1 !important;
+    }
+
+    .text-slate-400 {
+      color: #94a3b8 !important;
+    }
+
+    .text-white {
+      color: #ffffff !important;
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+ </head>
+ <body class="h-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 theme-ocean">
+  <div id="app" class="h-full w-full"></div>
+  <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
+  <script>
+    // ==================== STATE ====================
+    let allData = [];
+    let currentUser = null;
+    let currentPage = 'dashboard';
+    let sidebarCollapsed = false;
+    let config = { app_title: 'Sistem Manajemen Sekolah SD' };
+
+    const SUPER_ADMIN = {
+      email: 'admin@sd.id',
+      password: 'admin123',
+      name: 'Super Administrator',
+      role: 'admin',
+      isSuperAdmin: true
+    };
+
+    let settings = {
+      theme: 'ocean',
+      font: 'Geist',
+      fontSize: 14,
+      logo: null
+    };
+
+    // ==================== UTILITY ====================
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const colors = {
+        success: 'from-green-500 to-green-600',
+        error: 'from-red-500 to-red-600',
+        warning: 'from-yellow-500 to-yellow-600',
+        info: 'from-blue-500 to-blue-600'
+      };
+      const icons = { success: '✓', error: '✕', warning: '⚠', info: 'ℹ' };
+      
+      const toast = document.createElement('div');
+      toast.className = `bg-gradient-to-r ${colors[type]} text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 min-w-72 font-medium fade-enter`;
+      toast.innerHTML = `<span class="text-lg font-bold">${icons[type]}</span><span>${message}</span>`;
+      container.appendChild(toast);
+      
+      setTimeout(() => toast.remove(), 3500);
+    }
+
+    function loadSettings() {
+      try {
+        const saved = localStorage.getItem('school_settings');
+        if (saved) settings = { ...settings, ...JSON.parse(saved) };
+      } catch (e) { console.error('Error loading settings:', e); }
+      applySettings();
+    }
+
+    function saveSettings() {
+      try {
+        localStorage.setItem('school_settings', JSON.stringify(settings));
+      } catch (e) { console.error('Error saving settings:', e); }
+    }
+
+    function applySettings() {
+      document.body.className = `h-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 theme-${settings.theme}`;
+      document.body.style.fontFamily = `'${settings.font}', sans-serif`;
+      document.body.style.fontSize = settings.fontSize + 'px';
+    }
+
+    // ==================== DATA HELPERS ====================
+    function getStudents() { return allData.filter(d => d.type === 'student'); }
+    function getUsers() { return allData.filter(d => d.type === 'user'); }
+    function getTeachers() { return allData.filter(d => d.type === 'user' && d.role === 'teacher'); }
+    function getAdmins() { return allData.filter(d => d.type === 'user' && d.role === 'admin'); }
+    function getClasses() { return allData.filter(d => d.type === 'class'); }
+    function getSubjects() { return allData.filter(d => d.type === 'subject'); }
+    function getAttendance() { return allData.filter(d => d.type === 'attendance'); }
+    function getGrades() { return allData.filter(d => d.type === 'grade'); }
+    function getSchoolIdentity() {
+      return allData.find(d => d.type === 'school_identity') || {
+        school_name: 'SD Negeri Karangsari',
+        npsn: '12345678',
+        address: 'Jl. Pendidikan No. 1',
+        principal: 'Drs. Ahmad Subarjo, M.Pd.',
+        academic_year: '2024/2025',
+        semester: 'Ganjil'
+      };
+    }
+
+    function getClassName(classId) {
+      const cls = getClasses().find(c => c.__backendId === classId);
+      return cls ? `Kelas ${cls.grade}${cls.parallel ? '-' + cls.parallel : ''}` : '-';
+    }
+
+    function getTeacherName(teacherId) {
+      const teacher = getUsers().find(u => u.__backendId === teacherId);
+      return teacher ? teacher.name : '-';
+    }
+
+    function getSubjectName(subjectId) {
+      const subject = getSubjects().find(s => s.__backendId === subjectId);
+      return subject ? subject.name_subject : '-';
+    }
+
+    function getStudentName(studentId) {
+      const student = getStudents().find(s => s.__backendId === studentId);
+      return student ? student.name : '-';
+    }
+
+    // ==================== AUTH ====================
+    function login(email, password) {
+      if (email === SUPER_ADMIN.email && password === SUPER_ADMIN.password) {
+        currentUser = SUPER_ADMIN;
+        localStorage.setItem('current_user', JSON.stringify(currentUser));
+        showToast('Selamat datang, Super Admin! 👋');
+        render();
+        return true;
+      }
+
+      const user = getUsers().find(u => u.email === email && u.password === password);
+      if (user) {
+        if (user.status === 'nonaktif') {
+          showToast('Akun Anda tidak aktif', 'error');
+          return false;
+        }
+        currentUser = user;
+        localStorage.setItem('current_user', JSON.stringify(currentUser));
+        showToast(`Selamat datang, ${user.name}! 👋`);
+        render();
+        return true;
+      }
+
+      showToast('Email atau password salah', 'error');
+      return false;
+    }
+
+    function logout() {
+      currentUser = null;
+      localStorage.removeItem('current_user');
+      currentPage = 'dashboard';
+      showToast('Berhasil logout 👋');
+      render();
+    }
+
+    function checkAuth() {
+      const saved = localStorage.getItem('current_user');
+      if (saved) {
+        currentUser = JSON.parse(saved);
+        return true;
+      }
+      return false;
+    }
+
+    function canAccess(menu) {
+      if (!currentUser) return false;
+      if (currentUser.role === 'admin' || currentUser.isSuperAdmin) return true;
+      const teacherMenus = ['dashboard', 'attendance', 'grades'];
+      return teacherMenus.includes(menu);
+    }
+
+    // ==================== RENDER ====================
+    function render() {
+      const app = document.getElementById('app');
+      if (!currentUser) {
+        app.innerHTML = renderLoginPage();
+        attachLoginListeners();
+      } else {
+        app.innerHTML = renderMainLayout();
+        attachMainListeners();
+      }
+    }
+
+    function renderLoginPage() {
+      const school = getSchoolIdentity();
+      return `
+        <div class="min-h-screen flex items-center justify-center p-4">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full max-w-6xl items-center">
+            <!-- Left: Branding -->
+            <div class="text-center lg:text-left space-y-6">
+              <div>
+                <h1 class="text-5xl lg:text-6xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400 leading-tight">
+                  Sistem Manajemen
+                </h1>
+                <h2 class="text-4xl lg:text-5xl font-black text-white mt-2">Sekolah Dasar</h2>
+              </div>
+              <p class="text-xl text-slate-300">${school.school_name}</p>
+              <div class="flex flex-col gap-3 text-slate-200">
+                <div class="flex items-center gap-3">
+                  <span class="text-2xl">📚</span>
+                  <span>Manajemen data siswa, guru & kelas</span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span class="text-2xl">📊</span>
+                  <span>Tracking absensi & nilai real-time</span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span class="text-2xl">🎨</span>
+                  <span>Dashboard interaktif & responsif</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Login Form -->
+            <div class="glass-card p-8 lg:p-10 space-y-6">
+              <div class="text-center">
+                ${settings.logo ? `<img src="${settings.logo}" alt="Logo" class="w-24 h-24 mx-auto mb-4 rounded-2xl object-cover shadow-lg">` : `<div class="w-24 h-24 mx-auto mb-4 rounded-2xl gradient-primary flex items-center justify-center text-white text-5xl shadow-lg">🏫</div>`}
+                <h3 class="text-2xl font-bold text-gray-900 mt-4">Login</h3>
+                <p class="text-gray-600 mt-1">Masuk ke sistem manajemen sekolah</p>
+              </div>
+              
+              <form id="loginForm" class="space-y-4">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">📧 Email</label>
+                  <input type="email" id="loginEmail" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-offset-0" placeholder="admin@sd.id">
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">🔐 Password</label>
+                  <input type="password" id="loginPassword" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-offset-0" placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn-primary w-full text-center">Masuk Sekarang</button>
+              </form>
+              
+              <div class="bg-slate-100 rounded-xl p-4 border border-slate-200">
+                <p class="text-sm font-semibold text-gray-700 text-center mb-2">🎯 Demo Login</p>
+                <div class="text-xs text-gray-600 font-mono text-center space-y-1">
+                  <div><span class="bg-slate-200 px-2 py-1 rounded">admin@sd.id</span></div>
+                  <div><span class="bg-slate-200 px-2 py-1 rounded">admin123</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderMainLayout() {
+      return `
+        <div class="h-full flex">
+          ${renderSidebar()}
+          <div class="flex-1 flex flex-col overflow-hidden">
+            ${renderHeader()}
+            <main class="flex-1 overflow-y-auto p-6 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+              ${renderPageContent()}
+            </main>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderSidebar() {
+      const school = getSchoolIdentity();
+      const menuItems = [
+        { id: 'dashboard', icon: '📊', label: 'Dashboard' },
+        { id: 'students', icon: '👨‍🎓', label: 'Data Siswa' },
+        { id: 'teachers', icon: '👨‍🏫', label: 'Data Guru' },
+        { id: 'classes', icon: '🏛️', label: 'Data Kelas' },
+        { id: 'subjects', icon: '📚', label: 'Mata Pelajaran' },
+        { id: 'attendance', icon: '📋', label: 'Absensi' },
+        { id: 'grades', icon: '📝', label: 'Nilai' },
+        { id: 'school', icon: '🏫', label: 'Identitas Sekolah' },
+        { id: 'admins', icon: '👤', label: 'Kelola Admin' },
+        { id: 'settings', icon: '⚙️', label: 'Pengaturan' }
+      ];
+
+      return `
+        <aside class="flex-shrink-0 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'w-24' : 'w-72'} glass-dark border-r border-slate-700" style="background: rgba(15, 23, 42, 0.6);">
+          <div class="p-6 border-b border-slate-700">
+            <div class="flex items-center gap-3">
+              ${settings.logo ? `<img src="${settings.logo}" alt="Logo" class="w-12 h-12 rounded-xl object-cover flex-shrink-0">` : `<div class="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center text-white text-xl flex-shrink-0">🏫</div>`}
+              <div class="flex-1 min-w-0 ${sidebarCollapsed ? 'hidden' : ''}">
+                <h2 class="font-black text-sm text-white truncate">${school.school_name}</h2>
+                <p class="text-xs text-slate-400">NPSN: ${school.npsn}</p>
+              </div>
+            </div>
+          </div>
+          
+          <nav class="flex-1 py-4 overflow-y-auto space-y-1 px-3">
+            ${menuItems.map(item => {
+              if (!canAccess(item.id)) return '';
+              return `
+                <button class="nav-btn w-full text-left px-4 py-3 text-sm text-slate-300 hover:text-white transition-colors rounded-xl font-medium ${currentPage === item.id ? 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-white border-l-2 border-l-blue-400' : 'hover:bg-slate-700/50'}" data-page="${item.id}">
+                  <span class="text-lg inline-block mr-3 w-5">${item.icon}</span>
+                  <span class="${sidebarCollapsed ? 'hidden' : 'inline'}">${item.label}</span>
+                </button>
+              `;
+            }).join('')}
+          </nav>
+          
+          <div class="p-3 border-t border-slate-700 space-y-2">
+            <button id="toggleSidebar" class="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-slate-700/30 hover:bg-slate-700/50 text-slate-300 text-sm font-medium transition-colors">
+              <span>${sidebarCollapsed ? '→' : '←'}</span>
+              <span class="${sidebarCollapsed ? 'hidden' : ''}">${sidebarCollapsed ? '' : 'Tutup'}</span>
+            </button>
+            <button id="logoutBtn" class="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-300 text-sm font-medium transition-colors cursor-pointer border-0">
+              <span>🚪</span>
+              <span class="${sidebarCollapsed ? 'hidden' : ''}">Logout</span>
+            </button>
+          </div>
+        </aside>
+      `;
+    }
+
+    function renderHeader() {
+      return `
+        <header class="bg-gradient-to-r from-slate-800 to-slate-700 border-b border-slate-600 px-8 py-5 flex items-center justify-between shadow-xl">
+          <div>
+            <h1 class="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400">${getPageTitle().split(' ').slice(1).join(' ')}</h1>
+            <p class="text-xs text-slate-400 mt-1">${new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+          </div>
+          <div class="flex items-center gap-5">
+            <div class="text-right">
+              <p class="text-sm font-bold text-white">${currentUser.name}</p>
+              <p class="text-xs text-slate-400 capitalize">${currentUser.role}${currentUser.isSuperAdmin ? ' ⭐' : ''}</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+              ${currentUser.name.charAt(0).toUpperCase()}
+            </div>
+          </div>
+        </header>
+      `;
+    }
+
+    function getPageTitle() {
+      const titles = {
+        dashboard: '📊 Dashboard',
+        students: '👨‍🎓 Data Siswa',
+        teachers: '👨‍🏫 Data Guru',
+        classes: '🏛️ Data Kelas',
+        subjects: '📚 Mata Pelajaran',
+        attendance: '📋 Absensi',
+        grades: '📝 Nilai',
+        school: '🏫 Identitas Sekolah',
+        admins: '👤 Kelola Admin',
+        settings: '⚙️ Pengaturan'
+      };
+      return titles[currentPage] || 'Dashboard';
+    }
+
+    function renderPageContent() {
+      switch (currentPage) {
+        case 'dashboard': return renderDashboard();
+        case 'students': return renderStudents();
+        case 'teachers': return renderTeachers();
+        case 'classes': return renderClasses();
+        case 'subjects': return renderSubjects();
+        case 'attendance': return renderAttendance();
+        case 'grades': return renderGrades();
+        case 'school': return renderSchool();
+        case 'admins': return renderAdmins();
+        case 'settings': return renderSettings();
+        default: return renderDashboard();
+      }
+    }
+
+    // ==================== DASHBOARD ====================
+    function renderDashboard() {
+      const students = getStudents();
+      const teachers = getTeachers();
+      const classes = getClasses();
+      const subjects = getSubjects();
+      const school = getSchoolIdentity();
+      
+      const today = new Date().toISOString().split('T')[0];
+      const todayAttendance = getAttendance().filter(a => a.date === today);
+      const presentToday = todayAttendance.filter(a => a.attendance_status === 'hadir').length;
+      const attendancePercent = todayAttendance.length > 0 ? Math.round((presentToday / todayAttendance.length) * 100) : 0;
+      
+      const grades = getGrades();
+      const avgGrade = grades.length > 0 ? Math.round(grades.reduce((sum, g) => sum + ((g.score_formatif || 0) + (g.score_sumatif_perbab || 0) + (g.score_sumatif_tengah || 0) + (g.score_sumatif_akhir || 0)) / 4, 0) / grades.length) : 0;
+
+      return `
+        <div class="space-y-6 max-w-7xl">
+          <!-- School Info -->
+          <div class="glass-card rounded-2xl p-8">
+            <div class="flex items-center gap-6">
+              ${settings.logo ? `<img src="${settings.logo}" alt="Logo" class="w-20 h-20 rounded-2xl object-cover shadow-lg">` : `<div class="w-20 h-20 rounded-2xl gradient-primary flex items-center justify-center text-white text-4xl shadow-lg">🏫</div>`}
+              <div>
+                <h2 class="text-3xl font-black text-gray-900">${school.school_name}</h2>
+                <p class="text-gray-600 mt-1">${school.address}</p>
+                <div class="flex gap-4 text-sm text-gray-500 mt-3">
+                  <span>📅 ${school.academic_year}</span>
+                  <span>•</span>
+                  <span>🗓️ Semester ${school.semester}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stats Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div class="stat-card glass-card rounded-2xl p-6">
+              <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-400 to-cyan-400 flex items-center justify-center text-2xl shadow-lg">👨‍🎓</div>
+                <div>
+                  <p class="text-3xl font-black text-gray-900">${students.length}</p>
+                  <p class="text-sm text-gray-600 font-medium">Total Siswa</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="stat-card glass-card rounded-2xl p-6">
+              <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-green-400 to-emerald-400 flex items-center justify-center text-2xl shadow-lg">👨‍🏫</div>
+                <div>
+                  <p class="text-3xl font-black text-gray-900">${teachers.length}</p>
+                  <p class="text-sm text-gray-600 font-medium">Total Guru</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="stat-card glass-card rounded-2xl p-6">
+              <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-2xl shadow-lg">🏛️</div>
+                <div>
+                  <p class="text-3xl font-black text-gray-900">${classes.length}</p>
+                  <p class="text-sm text-gray-600 font-medium">Total Kelas</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="stat-card glass-card rounded-2xl p-6">
+              <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-400 to-red-400 flex items-center justify-center text-2xl shadow-lg">📚</div>
+                <div>
+                  <p class="text-3xl font-black text-gray-900">${subjects.length}</p>
+                  <p class="text-sm text-gray-600 font-medium">Mata Pelajaran</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Attendance & Grades -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="glass-card rounded-2xl p-6">
+              <h3 class="font-black text-gray-900 mb-6 flex items-center gap-2">
+                <span class="text-2xl">📋</span>
+                <span>Absensi Hari Ini</span>
+              </h3>
+              <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-4xl font-black text-green-600">${presentToday}</p>
+                    <p class="text-sm text-gray-600 font-medium">dari ${todayAttendance.length} siswa</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-4xl font-black gradient-primary bg-clip-text text-transparent">${attendancePercent}%</p>
+                    <p class="text-sm text-gray-600 font-medium">kehadiran</p>
+                  </div>
+                </div>
+                <div class="h-3 bg-gray-200 rounded-full overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-green-400 to-emerald-400 rounded-full" style="width: ${attendancePercent}%"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="glass-card rounded-2xl p-6">
+              <h3 class="font-black text-gray-900 mb-6 flex items-center gap-2">
+                <span class="text-2xl">📝</span>
+                <span>Rata-rata Nilai</span>
+              </h3>
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-4xl font-black gradient-primary bg-clip-text text-transparent">${avgGrade}</p>
+                  <p class="text-sm text-gray-600 font-medium">nilai rata-rata</p>
+                </div>
+                <div class="text-right">
+                  <p class="text-4xl font-black text-gray-900">${grades.length}</p>
+                  <p class="text-sm text-gray-600 font-medium">data nilai</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ==================== STUDENTS ====================
+    function renderStudents() {
+      const students = getStudents();
+      const classes = getClasses();
+
+      return `
+        <div class="max-w-7xl space-y-5">
+          <div class="flex flex-wrap gap-3 items-center justify-between">
+            <div class="flex gap-2">
+              <button id="addStudentBtn" class="btn-primary flex items-center gap-2">
+                <span>➕</span> Tambah Siswa
+              </button>
+              <button id="importStudentBtn" class="px-4 py-2.5 rounded-xl border border-slate-600 bg-slate-700/30 hover:bg-slate-700/50 text-slate-200 font-medium transition-colors">📥 Import</button>
+              <button id="exportStudentBtn" class="px-4 py-2.5 rounded-xl border border-slate-600 bg-slate-700/30 hover:bg-slate-700/50 text-slate-200 font-medium transition-colors">📤 Export</button>
+            </div>
+            <div class="flex gap-2">
+              <select id="filterClass" class="px-4 py-2.5 border border-slate-600 rounded-xl bg-slate-700/30 text-white font-medium">
+                <option value="">Semua Kelas</option>
+                ${classes.map(c => `<option value="${c.__backendId}">Kelas ${c.grade}${c.parallel ? '-' + c.parallel : ''}</option>`).join('')}
+              </select>
+              <input type="text" id="searchStudent" placeholder="Cari siswa..." class="px-4 py-2.5 border border-slate-600 rounded-xl bg-slate-700/30 text-white font-medium placeholder-slate-400">
+            </div>
+          </div>
+
+          <div class="glass-card rounded-2xl overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-slate-700/50 border-b border-slate-600">
+                  <tr>
+                    <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">No</th>
+                    <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">NISN</th>
+                    <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">Nama</th>
+                    <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">L/P</th>
+                    <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">Kelas</th>
+                    <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">Orang Tua</th>
+                    <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-700">
+                  ${students.length === 0 ? `
+                    <tr>
+                      <td colspan="7" class="px-6 py-12 text-center">
+                        <span class="text-4xl">👨‍🎓</span>
+                        <p class="mt-3 font-medium">Belum ada data siswa</p>
+                      </td>
+                    </tr>
+                  ` : students.map((s, i) => `
+                    <tr class="table-row border-slate-700">
+                      <td class="px-6 py-4 text-sm">${i + 1}</td>
+                      <td class="px-6 py-4 text-sm font-bold">${s.nisn}</td>
+                      <td class="px-6 py-4 text-sm">${s.name}</td>
+                      <td class="px-6 py-4 text-sm">${s.gender === 'L' ? '👦 L' : '👧 P'}</td>
+                      <td class="px-6 py-4 text-sm">${getClassName(s.class_id)}</td>
+                      <td class="px-6 py-4 text-sm">${s.parent_name || '-'}</td>
+                      <td class="px-6 py-4">
+                        <div class="flex gap-2">
+                          <button class="edit-student p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors" data-id="${s.__backendId}">✏️</button>
+                          <button class="delete-student p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors" data-id="${s.__backendId}">🗑️</button>
+                        </div>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ==================== TEACHERS ====================
+    function renderTeachers() {
+      const teachers = getTeachers();
+
+      return `
+        <div class="max-w-7xl space-y-5">
+          <div class="flex justify-between items-center">
+            <button id="addTeacherBtn" class="btn-primary flex items-center gap-2">
+              <span>➕</span> Tambah Guru
+            </button>
+            <input type="text" id="searchTeacher" placeholder="Cari guru..." class="px-4 py-2.5 border border-slate-600 rounded-xl bg-slate-700/30 text-white font-medium placeholder-slate-400">
+          </div>
+
+          <div class="glass-card rounded-2xl overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-slate-700/50 border-b border-slate-600">
+                  <tr>
+                    <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">No</th>
+                    <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">NIP</th>
+                    <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">Nama</th>
+                    <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">Email</th>
+                    <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">Wali Kelas</th>
+                    <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-700">
+                  ${teachers.length === 0 ? `
+                    <tr>
+                      <td colspan="7" class="px-6 py-12 text-center">
+                        <span class="text-4xl">👨‍🏫</span>
+                        <p class="mt-3 font-medium">Belum ada data guru</p>
+                      </td>
+                    </tr>
+                  ` : teachers.map((t, i) => `
+                    <tr class="table-row border-slate-700">
+                      <td class="px-6 py-4 text-sm">${i + 1}</td>
+                      <td class="px-6 py-4 text-sm font-bold">${t.nip || '-'}</td>
+                      <td class="px-6 py-4 text-sm">${t.name}</td>
+                      <td class="px-6 py-4 text-sm">${t.email}</td>
+                      <td class="px-6 py-4 text-sm">${getClassName(t.assigned_class)}</td>
+                      <td class="px-6 py-4">
+                        <span class="px-3 py-1 text-xs font-bold rounded-full ${t.status === 'aktif' ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}">
+                          ${t.status || 'aktif'}
+                        </span>
+                      </td>
+                      <td class="px-6 py-4">
+                        <div class="flex gap-2">
+                          <button class="edit-teacher p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors" data-id="${t.__backendId}">✏️</button>
+                          <button class="delete-teacher p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors" data-id="${t.__backendId}">🗑️</button>
+                        </div>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ==================== CLASSES ====================
+    function renderClasses() {
+      const classes = getClasses();
+
+      return `
+        <div class="max-w-7xl space-y-5">
+          <button id="addClassBtn" class="btn-primary flex items-center gap-2">
+            <span>➕</span> Tambah Kelas
+          </button>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            ${classes.length === 0 ? `
+              <div class="col-span-full glass-card rounded-2xl p-12 text-center">
+                <span class="text-5xl">🏛️</span>
+                <p class="mt-3 font-medium text-lg">Belum ada data kelas</p>
+              </div>
+            ` : classes.map(c => {
+              const studentsInClass = getStudents().filter(s => s.class_id === c.__backendId).length;
+              const teacher = getTeacherName(c.homeroom_teacher);
+              return `
+                <div class="stat-card glass-card rounded-2xl p-6">
+                  <div class="flex items-center justify-between mb-5">
+                    <h3 class="text-2xl font-black text-gray-900">Kelas ${c.grade}${c.parallel ? '-' + c.parallel : ''}</h3>
+                    <div class="flex gap-2">
+                      <button class="edit-class p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors" data-id="${c.__backendId}">✏️</button>
+                      <button class="delete-class p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors" data-id="${c.__backendId}">🗑️</button>
+                    </div>
+                  </div>
+                  <div class="space-y-3 text-sm">
+                    <div class="flex items-center gap-3 p-3 bg-slate-100 rounded-lg">
+                      <span class="text-lg">👨‍🏫</span>
+                      <div>
+                        <p class="text-xs text-gray-600 font-medium">Wali Kelas</p>
+                        <p class="text-gray-900 font-bold">${teacher}</p>
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-3 bg-slate-100 rounded-lg">
+                      <span class="text-lg">👨‍🎓</span>
+                      <div>
+                        <p class="text-xs text-gray-600 font-medium">Total Siswa</p>
+                        <p class="text-gray-900 font-bold">${studentsInClass} siswa</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // ==================== SUBJECTS ====================
+    function renderSubjects() {
+      const subjects = getSubjects();
+
+      return `
+        <div class="max-w-7xl space-y-5">
+          <button id="addSubjectBtn" class="btn-primary flex items-center gap-2">
+            <span>➕</span> Tambah Mapel
+          </button>
+
+          <div class="glass-card rounded-2xl overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-slate-700/50 border-b border-slate-600">
+                  <tr>
+                    <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">No</th>
+                    <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">Kode</th>
+                    <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">Nama Mapel</th>
+                    <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">Berlaku Untuk</th>
+                    <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-700">
+                  ${subjects.length === 0 ? `
+                    <tr>
+                      <td colspan="5" class="px-6 py-12 text-center">
+                        <span class="text-4xl">📚</span>
+                        <p class="mt-3 font-medium">Belum ada mata pelajaran</p>
+                      </td>
+                    </tr>
+                  ` : subjects.map((s, i) => {
+                    const classIds = s.classes ? s.classes.split(',') : [];
+                    const classNames = classIds.map(id => getClassName(id)).filter(n => n !== '-').join(', ');
+                    return `
+                      <tr class="table-row border-slate-700">
+                        <td class="px-6 py-4 text-sm">${i + 1}</td>
+                        <td class="px-6 py-4 text-sm font-bold">${s.code}</td>
+                        <td class="px-6 py-4 text-sm">${s.name_subject}</td>
+                        <td class="px-6 py-4 text-sm">${classNames || 'Semua Kelas'}</td>
+                        <td class="px-6 py-4">
+                          <div class="flex gap-2">
+                            <button class="edit-subject p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors" data-id="${s.__backendId}">✏️</button>
+                            <button class="delete-subject p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors" data-id="${s.__backendId}">🗑️</button>
+                          </div>
+                        </td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ==================== ATTENDANCE ====================
+    function renderAttendance() {
+      const classes = getClasses();
+      const today = new Date().toISOString().split('T')[0];
+
+      return `
+        <div class="max-w-7xl space-y-5">
+          <div class="glass-card rounded-2xl p-6">
+            <div class="flex flex-wrap gap-4 items-end">
+              <div>
+                <label class="block text-sm font-bold text-gray-900 mb-2">📅 Tanggal</label>
+                <input type="date" id="attendanceDate" value="${today}" class="px-4 py-2.5 border border-gray-300 rounded-xl">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-900 mb-2">🏛️ Kelas</label>
+                <select id="attendanceClass" class="px-4 py-2.5 border border-gray-300 rounded-xl">
+                  <option value="">Pilih Kelas</option>
+                  ${classes.map(c => `<option value="${c.__backendId}">Kelas ${c.grade}${c.parallel ? '-' + c.parallel : ''}</option>`).join('')}
+                </select>
+              </div>
+              <button id="loadAttendanceBtn" class="btn-primary">Tampilkan</button>
+            </div>
+          </div>
+
+          <div id="attendanceContent" class="glass-card rounded-2xl p-8">
+            <div class="text-center py-12">
+              <span class="text-5xl">📋</span>
+              <p class="mt-4 font-medium text-lg">Pilih tanggal dan kelas untuk menampilkan absensi</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function loadAttendanceTable(date, classId) {
+      const students = getStudents().filter(s => s.class_id === classId);
+      const attendance = getAttendance().filter(a => a.date === date && a.class_id === classId);
+
+      const content = document.getElementById('attendanceContent');
+      if (!content || students.length === 0) {
+        content.innerHTML = `
+          <div class="text-center py-12">
+            <span class="text-5xl">👨‍🎓</span>
+            <p class="mt-4 font-medium text-lg">Tidak ada siswa di kelas ini</p>
+          </div>
+        `;
+        return;
+      }
+
+      content.innerHTML = `
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-slate-700/50 border-b border-slate-600">
+              <tr>
+                <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">No</th>
+                <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">NISN</th>
+                <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">Nama</th>
+                <th class="px-6 py-4 text-center text-xs font-black uppercase tracking-wider">✓ Hadir</th>
+                <th class="px-6 py-4 text-center text-xs font-black uppercase tracking-wider">🤒 Sakit</th>
+                <th class="px-6 py-4 text-center text-xs font-black uppercase tracking-wider">📝 Izin</th>
+                <th class="px-6 py-4 text-center text-xs font-black uppercase tracking-wider">✕ Alpa</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-700">
+              ${students.map((s, i) => {
+                const att = attendance.find(a => a.student_id === s.__backendId);
+                const status = att ? att.attendance_status : '';
+                return `
+                  <tr class="table-row">
+                    <td class="px-6 py-4 text-sm">${i + 1}</td>
+                    <td class="px-6 py-4 text-sm font-bold">${s.nisn}</td>
+                    <td class="px-6 py-4 text-sm">${s.name}</td>
+                    <td class="px-6 py-4 text-center"><input type="radio" name="att_${s.__backendId}" value="hadir" ${status === 'hadir' ? 'checked' : ''} class="att-radio cursor-pointer w-4 h-4" data-student="${s.__backendId}" data-class="${classId}" data-date="${date}"></td>
+                    <td class="px-6 py-4 text-center"><input type="radio" name="att_${s.__backendId}" value="sakit" ${status === 'sakit' ? 'checked' : ''} class="att-radio cursor-pointer w-4 h-4" data-student="${s.__backendId}" data-class="${classId}" data-date="${date}"></td>
+                    <td class="px-6 py-4 text-center"><input type="radio" name="att_${s.__backendId}" value="izin" ${status === 'izin' ? 'checked' : ''} class="att-radio cursor-pointer w-4 h-4" data-student="${s.__backendId}" data-class="${classId}" data-date="${date}"></td>
+                    <td class="px-6 py-4 text-center"><input type="radio" name="att_${s.__backendId}" value="alpa" ${status === 'alpa' ? 'checked' : ''} class="att-radio cursor-pointer w-4 h-4" data-student="${s.__backendId}" data-class="${classId}" data-date="${date}"></td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      attachAttendanceListeners();
+    }
+
+    function attachAttendanceListeners() {
+      document.querySelectorAll('.att-radio').forEach(radio => {
+        radio.addEventListener('change', async function() {
+          const studentId = this.dataset.student;
+          const classId = this.dataset.class;
+          const date = this.dataset.date;
+          const status = this.value;
+
+          const existing = getAttendance().find(a => a.student_id === studentId && a.class_id === classId && a.date === date);
+
+          if (existing) {
+            existing.attendance_status = status;
+            await window.dataSdk.update(existing);
+          } else {
+            await window.dataSdk.create({
+              type: 'attendance',
+              student_id: studentId,
+              class_id: classId,
+              date: date,
+              attendance_status: status,
+              created_at: new Date().toISOString()
+            });
+          }
+          showToast('Absensi tersimpan ✓');
+        });
+      });
+    }
+
+    // ==================== GRADES ====================
+    function renderGrades() {
+      const classes = getClasses();
+      const subjects = getSubjects();
+
+      return `
+        <div class="max-w-7xl space-y-5">
+          <div class="glass-card rounded-2xl p-6">
+            <div class="flex flex-wrap gap-4 items-end">
+              <div>
+                <label class="block text-sm font-bold text-gray-900 mb-2">🏛️ Kelas</label>
+                <select id="gradeClass" class="px-4 py-2.5 border border-gray-300 rounded-xl">
+                  <option value="">Pilih Kelas</option>
+                  ${classes.map(c => `<option value="${c.__backendId}">Kelas ${c.grade}${c.parallel ? '-' + c.parallel : ''}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-900 mb-2">📚 Mata Pelajaran</label>
+                <select id="gradeSubject" class="px-4 py-2.5 border border-gray-300 rounded-xl">
+                  <option value="">Pilih Mapel</option>
+                  ${subjects.map(s => `<option value="${s.__backendId}">${s.name_subject}</option>`).join('')}
+                </select>
+              </div>
+              <button id="loadGradesBtn" class="btn-primary">Tampilkan</button>
+            </div>
+          </div>
+
+          <div id="gradesContent" class="glass-card rounded-2xl p-8">
+            <div class="text-center py-12">
+              <span class="text-5xl">📝</span>
+              <p class="mt-4 font-medium text-lg">Pilih kelas dan mata pelajaran</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function loadGradesTable(classId, subjectId) {
+      const students = getStudents().filter(s => s.class_id === classId);
+      const grades = getGrades().filter(g => g.class_id === classId && g.subject_id === subjectId);
+
+      const content = document.getElementById('gradesContent');
+      if (!content || students.length === 0) {
+        content.innerHTML = `<div class="text-center py-12"><span class="text-5xl">👨‍🎓</span><p class="mt-4 font-medium">Tidak ada siswa</p></div>`;
+        return;
+      }
+
+      content.innerHTML = `
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-slate-700/50 border-b border-slate-600">
+              <tr>
+                <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">No</th>
+                <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">NISN</th>
+                <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">Nama</th>
+                <th class="px-6 py-4 text-center text-xs font-black uppercase tracking-wider">Formatif</th>
+                <th class="px-6 py-4 text-center text-xs font-black uppercase tracking-wider">Sum. Bab</th>
+                <th class="px-6 py-4 text-center text-xs font-black uppercase tracking-wider">Sum. Tengah</th>
+                <th class="px-6 py-4 text-center text-xs font-black uppercase tracking-wider">Sum. Akhir</th>
+                <th class="px-6 py-4 text-center text-xs font-black uppercase tracking-wider">Rata-rata</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-700">
+              ${students.map((s, i) => {
+                const grade = grades.find(g => g.student_id === s.__backendId) || {};
+                const f = grade.score_formatif || 0;
+                const sp = grade.score_sumatif_perbab || 0;
+                const st = grade.score_sumatif_tengah || 0;
+                const sa = grade.score_sumatif_akhir || 0;
+                const avg = Math.round((f + sp + st + sa) / 4);
+                return `
+                  <tr class="table-row">
+                    <td class="px-6 py-4 text-sm">${i + 1}</td>
+                    <td class="px-6 py-4 text-sm font-bold">${s.nisn}</td>
+                    <td class="px-6 py-4 text-sm">${s.name}</td>
+                    <td class="px-6 py-4"><input type="number" min="0" max="100" value="${f || ''}" class="grade-input w-20 px-2 py-2 border border-slate-600 rounded-lg bg-slate-700/30 text-white text-center text-sm font-medium" data-student="${s.__backendId}" data-class="${classId}" data-subject="${subjectId}" data-field="score_formatif"></td>
+                    <td class="px-6 py-4"><input type="number" min="0" max="100" value="${sp || ''}" class="grade-input w-20 px-2 py-2 border border-slate-600 rounded-lg bg-slate-700/30 text-white text-center text-sm font-medium" data-student="${s.__backendId}" data-class="${classId}" data-subject="${subjectId}" data-field="score_sumatif_perbab"></td>
+                    <td class="px-6 py-4"><input type="number" min="0" max="100" value="${st || ''}" class="grade-input w-20 px-2 py-2 border border-slate-600 rounded-lg bg-slate-700/30 text-white text-center text-sm font-medium" data-student="${s.__backendId}" data-class="${classId}" data-subject="${subjectId}" data-field="score_sumatif_tengah"></td>
+                    <td class="px-6 py-4"><input type="number" min="0" max="100" value="${sa || ''}" class="grade-input w-20 px-2 py-2 border border-slate-600 rounded-lg bg-slate-700/30 text-white text-center text-sm font-medium" data-student="${s.__backendId}" data-class="${classId}" data-subject="${subjectId}" data-field="score_sumatif_akhir"></td>
+                    <td class="px-6 py-4 text-center"><span class="avg-display font-black text-lg ${avg >= 70 ? 'text-green-400' : 'text-red-400'}">${avg || '-'}</span></td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      attachGradeListeners();
+    }
+
+    function attachGradeListeners() {
+      document.querySelectorAll('.grade-input').forEach(input => {
+        input.addEventListener('change', async function() {
+          const studentId = this.dataset.student;
+          const classId = this.dataset.class;
+          const subjectId = this.dataset.subject;
+          const field = this.dataset.field;
+          const value = parseInt(this.value) || 0;
+
+          const existing = getGrades().find(g => g.student_id === studentId && g.class_id === classId && g.subject_id === subjectId);
+
+          if (existing) {
+            existing[field] = value;
+            await window.dataSdk.update(existing);
+          } else {
+            const newGrade = {
+              type: 'grade',
+              student_id: studentId,
+              class_id: classId,
+              subject_id: subjectId,
+              score_formatif: 0,
+              score_sumatif_perbab: 0,
+              score_sumatif_tengah: 0,
+              score_sumatif_akhir: 0,
+              created_at: new Date().toISOString()
+            };
+            newGrade[field] = value;
+            await window.dataSdk.create(newGrade);
+          }
+
+          const row = this.closest('tr');
+          const inputs = row.querySelectorAll('.grade-input');
+          let total = 0;
+          inputs.forEach(inp => total += parseInt(inp.value) || 0);
+          const avg = Math.round(total / 4);
+          const avgDisplay = row.querySelector('.avg-display');
+          avgDisplay.textContent = avg;
+          avgDisplay.className = `avg-display font-black text-lg ${avg >= 70 ? 'text-green-400' : 'text-red-400'}`;
+          
+          showToast('Nilai tersimpan ✓');
+        });
+      });
+    }
+
+    // ==================== SCHOOL ====================
+    function renderSchool() {
+      const school = getSchoolIdentity();
+
+      return `
+        <div class="max-w-2xl">
+          <div class="glass-card rounded-2xl p-8">
+            <h3 class="text-2xl font-black text-gray-900 mb-8 flex items-center gap-2">
+              <span class="text-3xl">📋</span>
+              <span>Identitas Sekolah</span>
+            </h3>
+            <form id="schoolForm" class="space-y-5">
+              <div>
+                <label class="block text-sm font-bold text-gray-900 mb-2">🏫 Nama Sekolah</label>
+                <input type="text" name="school_name" value="${school.school_name || ''}" required class="w-full px-4 py-3 border border-gray-300 rounded-xl font-medium">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-900 mb-2">📌 NPSN</label>
+                <input type="text" name="npsn" value="${school.npsn || ''}" class="w-full px-4 py-3 border border-gray-300 rounded-xl font-medium">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-900 mb-2">📍 Alamat</label>
+                <textarea name="address" rows="2" class="w-full px-4 py-3 border border-gray-300 rounded-xl font-medium">${school.address || ''}</textarea>
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-900 mb-2">👔 Kepala Sekolah</label>
+                <input type="text" name="principal" value="${school.principal || ''}" class="w-full px-4 py-3 border border-gray-300 rounded-xl font-medium">
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-bold text-gray-900 mb-2">📅 Tahun Ajaran</label>
+                  <input type="text" name="academic_year" value="${school.academic_year || ''}" placeholder="2024/2025" class="w-full px-4 py-3 border border-gray-300 rounded-xl font-medium">
+                </div>
+                <div>
+                  <label class="block text-sm font-bold text-gray-900 mb-2">🗓️ Semester</label>
+                  <select name="semester" class="w-full px-4 py-3 border border-gray-300 rounded-xl font-medium">
+                    <option value="Ganjil" ${school.semester === 'Ganjil' ? 'selected' : ''}>Ganjil</option>
+                    <option value="Genap" ${school.semester === 'Genap' ? 'selected' : ''}>Genap</option>
+                  </select>
+                </div>
+              </div>
+              <button type="submit" class="btn-primary w-full text-center">💾 Simpan Identitas</button>
+            </form>
+          </div>
+        </div>
+      `;
+    }
+
+    // ==================== ADMINS ====================
+    function renderAdmins() {
+      const admins = getAdmins();
+
+      return `
+        <div class="max-w-7xl space-y-5">
+          <button id="addAdminBtn" class="btn-primary flex items-center gap-2">
+            <span>➕</span> Tambah Admin
+          </button>
+
+          <div class="glass-card rounded-2xl overflow-hidden">
+            <table class="w-full">
+              <thead class="bg-slate-700/50 border-b border-slate-600">
+                <tr>
+                  <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">No</th>
+                  <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">Nama</th>
+                  <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">Email</th>
+                  <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">Status</th>
+                  <th class="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">Aksi</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-700">
+                ${admins.length === 0 ? `
+                  <tr>
+                    <td colspan="5" class="px-6 py-12 text-center">
+                      <span class="text-4xl">👤</span>
+                      <p class="mt-3 font-medium">Belum ada admin tambahan</p>
+                    </td>
+                  </tr>
+                ` : admins.map((a, i) => `
+                  <tr class="table-row border-slate-700">
+                    <td class="px-6 py-4 text-sm">${i + 1}</td>
+                    <td class="px-6 py-4 text-sm font-bold">${a.name}</td>
+                    <td class="px-6 py-4 text-sm">${a.email}</td>
+                    <td class="px-6 py-4">
+                      <span class="px-3 py-1 text-xs font-bold rounded-full ${a.status === 'aktif' ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}">
+                        ${a.status || 'aktif'}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4">
+                      <div class="flex gap-2">
+                        <button class="edit-admin p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors" data-id="${a.__backendId}">✏️</button>
+                        <button class="delete-admin p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors" data-id="${a.__backendId}">🗑️</button>
+                      </div>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    // ==================== SETTINGS ====================
+    function renderSettings() {
+      return `
+        <div class="max-w-3xl space-y-6">
+          <!-- Theme -->
+          <div class="glass-card rounded-2xl p-8">
+            <h3 class="text-2xl font-black text-gray-900 mb-6 flex items-center gap-2">
+              <span class="text-3xl">🎨</span>
+              <span>Tema & Tampilan</span>
+            </h3>
+            <div class="space-y-6">
+              <div>
+                <label class="block text-sm font-bold text-gray-900 mb-4">Pilih Tema</label>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <button class="theme-btn p-4 rounded-2xl border-2 border-transparent hover:border-gray-300 transition-all" data-theme="ocean">
+                    <div class="w-full h-12 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-400 shadow-md"></div>
+                    <p class="text-sm font-bold text-gray-700 mt-2 text-center">Ocean</p>
+                  </button>
+                  <button class="theme-btn p-4 rounded-2xl border-2 border-transparent hover:border-gray-300 transition-all" data-theme="forest">
+                    <div class="w-full h-12 rounded-lg bg-gradient-to-r from-green-500 to-emerald-400 shadow-md"></div>
+                    <p class="text-sm font-bold text-gray-700 mt-2 text-center">Forest</p>
+                  </button>
+                  <button class="theme-btn p-4 rounded-2xl border-2 border-transparent hover:border-gray-300 transition-all" data-theme="sunset">
+                    <div class="w-full h-12 rounded-lg bg-gradient-to-r from-red-500 to-orange-400 shadow-md"></div>
+                    <p class="text-sm font-bold text-gray-700 mt-2 text-center">Sunset</p>
+                  </button>
+                  <button class="theme-btn p-4 rounded-2xl border-2 border-transparent hover:border-gray-300 transition-all" data-theme="purple">
+                    <div class="w-full h-12 rounded-lg bg-gradient-to-r from-purple-500 to-pink-400 shadow-md"></div>
+                    <p class="text-sm font-bold text-gray-700 mt-2 text-center">Purple</p>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-bold text-gray-900 mb-3">✍️ Font</label>
+                <select id="fontSelect" class="w-full px-4 py-3 border border-gray-300 rounded-xl font-medium">
+                  <option value="Geist" ${settings.font === 'Geist' ? 'selected' : ''}>Geist (Modern & Clean)</option>
+                  <option value="Satoshi" ${settings.font === 'Satoshi' ? 'selected' : ''}>Satoshi (Friendly & Rounded)</option>
+                  <option value="DM Sans" ${settings.font === 'DM Sans' ? 'selected' : ''}>DM Sans (Minimal & Pro)</option>
+                  <option value="Outfit" ${settings.font === 'Outfit' ? 'selected' : ''}>Outfit (Futuristic)</option>
+                  <option value="Poppins" ${settings.font === 'Poppins' ? 'selected' : ''}>Poppins (Playful)</option>
+                </select>
+              </div>
+
+              <div>
+                <div class="flex items-center justify-between mb-3">
+                  <label class="text-sm font-bold text-gray-900">📏 Ukuran Font</label>
+                  <span class="font-bold text-blue-600">${settings.fontSize}px</span>
+                </div>
+                <input type="range" id="fontSizeRange" min="12" max="20" value="${settings.fontSize}" class="w-full h-2 bg-gray-300 rounded-full appearance-none cursor-pointer">
+              </div>
+            </div>
+          </div>
+
+          <!-- Logo -->
+          <div class="glass-card rounded-2xl p-8">
+            <h3 class="text-2xl font-black text-gray-900 mb-6 flex items-center gap-2">
+              <span class="text-3xl">🖼️</span>
+              <span>Logo Sekolah</span>
+            </h3>
+            <div class="flex items-center gap-6">
+              <div class="w-24 h-24 rounded-2xl shadow-lg flex items-center justify-center flex-shrink-0" style="background: linear-gradient(135deg, #e5e7eb 0%, #f3f4f6 100%);">
+                ${settings.logo ? `<img src="${settings.logo}" alt="Logo" class="w-full h-full rounded-2xl object-cover">` : `<span class="text-4xl">🏫</span>`}
+              </div>
+              <div class="flex-1 space-y-3">
+                <input type="file" id="logoUpload" accept="image/*" class="hidden">
+                <button id="uploadLogoBtn" class="w-full px-4 py-3 rounded-xl border-2 border-gray-300 hover:border-gray-400 font-bold transition-colors">📤 Upload Logo</button>
+                ${settings.logo ? `<button id="removeLogoBtn" class="w-full px-4 py-3 rounded-xl border-2 border-red-300 text-red-600 hover:border-red-400 font-bold transition-colors">🗑️ Hapus Logo</button>` : ''}
+              </div>
+            </div>
+          </div>
+
+          <!-- Backup -->
+          <div class="glass-card rounded-2xl p-8">
+            <h3 class="text-2xl font-black text-gray-900 mb-6 flex items-center gap-2">
+              <span class="text-3xl">💾</span>
+              <span>Backup & Restore</span>
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <button id="backupBtn" class="px-6 py-4 rounded-xl border-2 border-gray-300 hover:border-green-400 hover:bg-green-50 transition-all text-center font-bold">
+                <span class="text-3xl block mb-2">📥</span>
+                <p>Download Backup</p>
+                <p class="text-xs text-gray-600 mt-1 font-normal">Backup semua data sistem</p>
+              </button>
+              <div>
+                <input type="file" id="restoreFile" accept=".json" class="hidden">
+                <button id="restoreBtn" class="w-full px-6 py-4 rounded-xl border-2 border-gray-300 hover:border-blue-400 hover:bg-blue-50 transition-all font-bold">
+                  <span class="text-3xl block mb-2">📤</span>
+                  <p>Restore Backup</p>
+                  <p class="text-xs text-gray-600 mt-1 font-normal">Restore dari file backup</p>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Profile -->
+          <div class="glass-card rounded-2xl p-8">
+            <h3 class="text-2xl font-black text-gray-900 mb-6 flex items-center gap-2">
+              <span class="text-3xl">👤</span>
+              <span>Profil Anda</span>
+            </h3>
+            <div class="space-y-3 text-sm">
+              <div class="flex justify-between items-center py-3 px-4 bg-gray-50 rounded-lg border border-gray-200">
+                <span class="text-gray-700 font-medium">Nama</span>
+                <span class="font-bold text-gray-900">${currentUser.name}</span>
+              </div>
+              <div class="flex justify-between items-center py-3 px-4 bg-gray-50 rounded-lg border border-gray-200">
+                <span class="text-gray-700 font-medium">Email</span>
+                <span class="font-bold text-gray-900">${currentUser.email}</span>
+              </div>
+              <div class="flex justify-between items-center py-3 px-4 bg-gray-50 rounded-lg border border-gray-200">
+                <span class="text-gray-700 font-medium">Role</span>
+                <span class="font-bold text-blue-600 capitalize">${currentUser.role} ${currentUser.isSuperAdmin ? '⭐' : ''}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ==================== LISTENERS ====================
+    function attachLoginListeners() {
+      document.getElementById('loginForm')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        login(
+          document.getElementById('loginEmail').value,
+          document.getElementById('loginPassword').value
+        );
+      });
+    }
+
+    function attachMainListeners() {
+      // Navigation
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          currentPage = btn.dataset.page;
+          render();
+        });
+      });
+
+      // Sidebar
+      document.getElementById('toggleSidebar')?.addEventListener('click', () => {
+        sidebarCollapsed = !sidebarCollapsed;
+        render();
+      });
+
+      document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        logout();
+      });
+
+      // Add buttons
+      document.getElementById('addStudentBtn')?.addEventListener('click', () => showStudentModal());
+      document.getElementById('addTeacherBtn')?.addEventListener('click', () => showTeacherModal());
+      document.getElementById('addClassBtn')?.addEventListener('click', () => showClassModal());
+      document.getElementById('addSubjectBtn')?.addEventListener('click', () => showSubjectModal());
+      document.getElementById('addAdminBtn')?.addEventListener('click', () => showAdminModal());
+
+      // Edit buttons
+      document.querySelectorAll('.edit-student').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const s = getStudents().find(x => x.__backendId === btn.dataset.id);
+          showStudentModal(s);
+        });
+      });
+
+      document.querySelectorAll('.edit-teacher').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const t = getTeachers().find(x => x.__backendId === btn.dataset.id);
+          showTeacherModal(t);
+        });
+      });
+
+      document.querySelectorAll('.edit-class').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const c = getClasses().find(x => x.__backendId === btn.dataset.id);
+          showClassModal(c);
+        });
+      });
+
+      document.querySelectorAll('.edit-subject').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const s = getSubjects().find(x => x.__backendId === btn.dataset.id);
+          showSubjectModal(s);
+        });
+      });
+
+      document.querySelectorAll('.edit-admin').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const a = getAdmins().find(x => x.__backendId === btn.dataset.id);
+          showAdminModal(a);
+        });
+      });
+
+      // Delete buttons
+      document.querySelectorAll('.delete-student').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const s = getStudents().find(x => x.__backendId === btn.dataset.id);
+          if (s && confirm(`Hapus ${s.name}? Tindakan ini tidak dapat dibatalkan.`)) {
+            await window.dataSdk.delete(s);
+            render();
+            showToast(`${s.name} berhasil dihapus!`);
+          }
+        });
+      });
+
+      document.querySelectorAll('.delete-teacher').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const t = getTeachers().find(x => x.__backendId === btn.dataset.id);
+          if (t && confirm(`Hapus ${t.name}? Tindakan ini tidak dapat dibatalkan.`)) {
+            await window.dataSdk.delete(t);
+            render();
+            showToast(`${t.name} berhasil dihapus!`);
+          }
+        });
+      });
+
+      document.querySelectorAll('.delete-class').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const c = getClasses().find(x => x.__backendId === btn.dataset.id);
+          if (c && confirm(`Hapus Kelas ${c.grade}? Tindakan ini tidak dapat dibatalkan.`)) {
+            await window.dataSdk.delete(c);
+            render();
+            showToast('Kelas berhasil dihapus!');
+          }
+        });
+      });
+
+      document.querySelectorAll('.delete-subject').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const s = getSubjects().find(x => x.__backendId === btn.dataset.id);
+          if (s && confirm(`Hapus ${s.name_subject}? Tindakan ini tidak dapat dibatalkan.`)) {
+            await window.dataSdk.delete(s);
+            render();
+            showToast('Mapel berhasil dihapus!');
+          }
+        });
+      });
+
+      document.querySelectorAll('.delete-admin').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const a = getAdmins().find(x => x.__backendId === btn.dataset.id);
+          if (a && confirm(`Hapus ${a.name}? Tindakan ini tidak dapat dibatalkan.`)) {
+            await window.dataSdk.delete(a);
+            render();
+            showToast(`${a.name} berhasil dihapus!`);
+          }
+        });
+      });
+
+      // Attendance
+      document.getElementById('loadAttendanceBtn')?.addEventListener('click', () => {
+        const date = document.getElementById('attendanceDate').value;
+        const classId = document.getElementById('attendanceClass').value;
+        if (date && classId) loadAttendanceTable(date, classId);
+        else showToast('Pilih tanggal dan kelas', 'warning');
+      });
+
+      // Grades
+      document.getElementById('loadGradesBtn')?.addEventListener('click', () => {
+        const classId = document.getElementById('gradeClass').value;
+        const subjectId = document.getElementById('gradeSubject').value;
+        if (classId && subjectId) loadGradesTable(classId, subjectId);
+        else showToast('Pilih kelas dan mapel', 'warning');
+      });
+
+      // Import/Export
+      document.getElementById('importStudentBtn')?.addEventListener('click', () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.csv,.xlsx,.xls';
+        input.addEventListener('change', handleImportStudents);
+        input.click();
+      });
+
+      document.getElementById('exportStudentBtn')?.addEventListener('click', exportStudents);
+
+      // Theme
+      document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          settings.theme = btn.dataset.theme;
+          saveSettings();
+          applySettings();
+          render();
+          showToast(`Tema ${btn.dataset.theme.toUpperCase()} dipilih! 🎨`);
+        });
+      });
+
+      // Font
+      document.getElementById('fontSelect')?.addEventListener('change', (e) => {
+        settings.font = e.target.value;
+        saveSettings();
+        applySettings();
+        showToast(`Font diubah menjadi ${e.target.value}! ✓`);
+      });
+
+      document.getElementById('fontSizeRange')?.addEventListener('input', (e) => {
+        settings.fontSize = parseInt(e.target.value);
+        saveSettings();
+        applySettings();
+      });
+
+      // Logo
+      document.getElementById('uploadLogoBtn')?.addEventListener('click', () => {
+        document.getElementById('logoUpload')?.click();
+      });
+
+      document.getElementById('logoUpload')?.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            settings.logo = evt.target.result;
+            saveSettings();
+            render();
+            showToast('Logo berhasil diupload! 🖼️');
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      document.getElementById('removeLogoBtn')?.addEventListener('click', () => {
+        settings.logo = null;
+        saveSettings();
+        render();
+        showToast('Logo berhasil dihapus');
+      });
+
+      // Backup/Restore
+      document.getElementById('backupBtn')?.addEventListener('click', downloadBackup);
+
+      document.getElementById('restoreBtn')?.addEventListener('click', () => {
+        document.getElementById('restoreFile')?.click();
+      });
+
+      document.getElementById('restoreFile')?.addEventListener('change', handleRestore);
+
+      // School form
+      document.getElementById('schoolForm')?.addEventListener('submit', handleSchoolSubmit);
+    }
+
+    // ==================== MODALS ====================
+    function showStudentModal(student = null) {
+      const classes = getClasses();
+      const form = `
+        <div class="fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+          <div class="glass-card rounded-2xl w-full max-w-md mx-4 p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <h3 class="text-2xl font-black text-gray-900 mb-6">${student ? '✏️ Edit Siswa' : '➕ Tambah Siswa'}</h3>
+            <form id="studentForm" class="space-y-4">
+              <input type="hidden" name="id" value="${student?.__backendId || ''}">
+              <div>
+                <label class="block text-sm font-bold text-gray-900 mb-2">NISN</label>
+                <input type="text" name="nisn" value="${student?.nisn || ''}" required class="w-full px-4 py-2.5 border border-gray-300 rounded-xl font-medium" placeholder="Nomor Induk Siswa Nasional">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-900 mb-2">Nama Lengkap</label>
+                <input type="text" name="name" value="${student?.name || ''}" required class="w-full px-4 py-2.5 border border-gray-300 rounded-xl font-medium">
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-sm font-bold text-gray-900 mb-2">L/P</label>
+                  <select name="gender" class="w-full px-4 py-2.5 border border-gray-300 rounded-xl font-medium">
+                    <option value="L" ${student?.gender === 'L' ? 'selected' : ''}>Laki-laki</option>
+                    <option value="P" ${student?.gender === 'P' ? 'selected' : ''}>Perempuan</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-bold text-gray-900 mb-2">Kelas</label>
+                  <select name="class_id" class="w-full px-4 py-2.5 border border-gray-300 rounded-xl font-medium">
+                    <option value="">Pilih</option>
+                    ${classes.map(c => `<option value="${c.__backendId}" ${student?.class_id === c.__backendId ? 'selected' : ''}>K${c.grade}</option>`).join('')}
+                  </select>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-sm font-bold text-gray-900 mb-2">Tempat Lahir</label>
+                  <input type="text" name="birthplace" value="${student?.birthplace || ''}" class="w-full px-4 py-2.5 border border-gray-300 rounded-xl font-medium">
+                </div>
+                <div>
+                  <label class="block text-sm font-bold text-gray-900 mb-2">Tanggal Lahir</label>
+                  <input type="date" name="birthdate" value="${student?.birthdate || ''}" class="w-full px-4 py-2.5 border border-gray-300 rounded-xl font-medium">
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-900 mb-2">Nama Orang Tua</label>
+                <input type="text" name="parent_name" value="${student?.parent_name || ''}" class="w-full px-4 py-2.5 border border-gray-300 rounded-xl font-medium">
+              </div>
+              <div class="flex gap-3 pt-4">
+                <button type="button" class="flex-1 px-4 py-2.5 border-2 border-gray-300 rounded-xl hover:bg-gray-50 font-bold transition-colors" onclick="document.querySelectorAll('.modal-overlay').forEach(el => el.remove())">Batal</button>
+                <button type="submit" class="flex-1 btn-primary">${student ? 'Update' : 'Simpan'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('beforeend', form);
+      document.getElementById('studentForm')?.addEventListener('submit', handleStudentSubmit);
+    }
+
+    function showTeacherModal(teacher = null) {
+      const classes = getClasses();
+      const form = `
+        <div class="fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+          <div class="glass-card rounded-2xl w-full max-w-md mx-4 p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <h3 class="text-2xl font-black text-gray-900 mb-6">${teacher ? '✏️ Edit Guru' : '➕ Tambah Guru'}</h3>
+            <form id="teacherForm" class="space-y-4">
+              <input type="hidden" name="id" value="${teacher?.__backendId || ''}">
+              <div>
+                <label class="block text-sm font-bold text-gray-900 mb-2">NIP</label>
+                <input type="text" name="nip" value="${teacher?.nip || ''}" class="w-full px-4 py-2.5 border border-gray-300 rounded-xl font-medium">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-900 mb-2">Nama Lengkap</label>
+                <input type="text" name="name" value="${teacher?.name || ''}" required class="w-full px-4 py-2.5 border border-gray-300 rounded-xl font-medium">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-900 mb-2">Email</label>
+                <input type="email" name="email" value="${teacher?.email || ''}" required class="w-full px-4 py-2.5 border border-gray-300 rounded-xl font-medium">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-900 mb-2">Password</label>
+                <input type="password" name="password" ${teacher ? '' : 'required'} class="w-full px-4 py-2.5 border border-gray-300 rounded-xl font-medium" placeholder="${teacher ? 'Kosongkan jika tidak diubah' : ''}">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-900 mb-2">Wali Kelas</label>
+                <select name="assigned_class" class="w-full px-4 py-2.5 border border-gray-300 rounded-xl font-medium">
+                  <option value="">Tidak Ada</option>
+                  ${classes.map(c => `<option value="${c.__backendId}" ${teacher?.assigned_class === c.__backendId ? 'selected' : ''}>K${c.grade}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-900 mb-2">Status</label>
+                <select name="status" class="w-full px-4 py-2.5 border border-gray-300 rounded-xl font-medium">
+                  <option value="aktif" ${teacher?.status === 'aktif' || !teacher ? 'selected' : ''}>Aktif</option>
+                  <option value="nonaktif" ${teacher?.status === 'nonaktif' ? 'selected' : ''}>Nonaktif</option>
+                </select>
+              </div>
+              <div class="flex gap-3 pt-4">
+                <button type="button" class="flex-1 px-4 py-2.5 border-2 border-gray-300 rounded-xl hover:bg-gray-50 font-bold transition-colors" onclick="document.querySelectorAll('.modal-overlay').forEach(el => el.remove())">Batal</button>
+                <button type="submit" class="flex-1 btn-primary">${teacher ? 'Update' : 'Simpan'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('beforeend', form);
+      document.getElementById('teacherForm')?.addEventListener('submit', handleTeacherSubmit);
+    }
+
+    function showClassModal(cls = null) {
+      const teachers = getTeachers();
+      const form = `
+        <div class="fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+          <div class="glass-card rounded-2xl w-full max-w-md mx-4 p-8 shadow-2xl">
+            <h3 class="text-2xl font-black text-gray-900 mb-6">${cls ? '✏️ Edit Kelas' : '➕ Tambah Kelas'}</h3>
+            <form id="classForm" class="space-y-4">
+              <input type="hidden" name="id" value="${cls?.__backendId || ''}">
+              <div>
+                <label class="block text-sm font-bold text-gray-900 mb-2">Tingkat</label>
+                <select name="grade" required class="w-full px-4 py-2.5 border border-gray-300 rounded-xl font-medium">
+                  <option value="">Pilih</option>
+                  ${['I', 'II', 'III', 'IV', 'V', 'VI'].map(g => `<option value="${g}" ${cls?.grade === g ? 'selected' : ''}>Kelas ${g}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-900 mb-2">Paralel</label>
+                <select name="parallel" class="w-full px-4 py-2.5 border border-gray-300 rounded-xl font-medium">
+                  <option value="">Tidak Ada</option>
+                  ${['A', 'B', 'C', 'D', 'E'].map(p => `<option value="${p}" ${cls?.parallel === p ? 'selected' : ''}>${p}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-900 mb-2">Wali Kelas</label>
+                <select name="homeroom_teacher" class="w-full px-4 py-2.5 border border-gray-300 rounded-xl font-medium">
+                  <option value="">Pilih Guru</option>
+                  ${teachers.map(t => `<option value="${t.__backendId}" ${cls?.homeroom_teacher === t.__backendId ? 'selected' : ''}>${t.name}</option>`).join('')}
+                </select>
+              </div>
+              <div class="flex gap-3 pt-4">
+                <button type="button" class="flex-1 px-4 py-2.5 border-2 border-gray-300 rounded-xl hover:bg-gray-50 font-bold transition-colors" onclick="document.querySelectorAll('.modal-overlay').forEach(el => el.remove())">Batal</button>
+                <button type="submit" class="flex-1 btn-primary">${cls ? 'Update' : 'Simpan'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('beforeend', form);
+      document.getElementById('classForm')?.addEventListener('submit', handleClassSubmit);
+    }
+
+    function showSubjectModal(subject = null) {
+      const classes = getClasses();
+      const selectedClasses = subject?.classes ? subject.classes.split(',') : [];
+      const form = `
+        <div class="fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+          <div class="glass-card rounded-2xl w-full max-w-md mx-4 p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <h3 class="text-2xl font-black text-gray-900 mb-6">${subject ? '✏️ Edit Mapel' : '➕ Tambah Mapel'}</h3>
+            <form id="subjectForm" class="space-y-4">
+              <input type="hidden" name="id" value="${subject?.__backendId || ''}">
+              <div>
+                <label class="block text-sm font-bold text-gray-900 mb-2">Kode</label>
+                <input type="text" name="code" value="${subject?.code || ''}" required class="w-full px-4 py-2.5 border border-gray-300 rounded-xl font-medium" placeholder="MTK, IPA, dll">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-900 mb-2">Nama Mapel</label>
+                <input type="text" name="name_subject" value="${subject?.name_subject || ''}" required class="w-full px-4 py-2.5 border border-gray-300 rounded-xl font-medium">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-900 mb-3">Berlaku Untuk Kelas</label>
+                <div class="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-3 border-2 border-gray-200 rounded-xl">
+                  ${classes.map(c => `
+                    <label class="flex items-center gap-2 p-2 hover:bg-blue-50 cursor-pointer rounded-lg transition-colors">
+                      <input type="checkbox" name="classes" value="${c.__backendId}" ${selectedClasses.includes(c.__backendId) ? 'checked' : ''} class="w-4 h-4 rounded cursor-pointer">
+                      <span class="text-sm font-medium">K${c.grade}${c.parallel || ''}</span>
+                    </label>
+                  `).join('')}
+                </div>
+              </div>
+              <div class="flex gap-3 pt-4">
+                <button type="button" class="flex-1 px-4 py-2.5 border-2 border-gray-300 rounded-xl hover:bg-gray-50 font-bold transition-colors" onclick="document.querySelectorAll('.modal-overlay').forEach(el => el.remove())">Batal</button>
+                <button type="submit" class="flex-1 btn-primary">${subject ? 'Update' : 'Simpan'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('beforeend', form);
+      document.getElementById('subjectForm')?.addEventListener('submit', handleSubjectSubmit);
+    }
+
+    function showAdminModal(admin = null) {
+      const form = `
+        <div class="fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+          <div class="glass-card rounded-2xl w-full max-w-md mx-4 p-8 shadow-2xl">
+            <h3 class="text-2xl font-black text-gray-900 mb-6">${admin ? '✏️ Edit Admin' : '➕ Tambah Admin'}</h3>
+            <form id="adminForm" class="space-y-4">
+              <input type="hidden" name="id" value="${admin?.__backendId || ''}">
+              <div>
+                <label class="block text-sm font-bold text-gray-900 mb-2">Nama Lengkap</label>
+                <input type="text" name="name" value="${admin?.name || ''}" required class="w-full px-4 py-2.5 border border-gray-300 rounded-xl font-medium">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-900 mb-2">Email</label>
+                <input type="email" name="email" value="${admin?.email || ''}" required class="w-full px-4 py-2.5 border border-gray-300 rounded-xl font-medium">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-900 mb-2">Password</label>
+                <input type="password" name="password" ${admin ? '' : 'required'} class="w-full px-4 py-2.5 border border-gray-300 rounded-xl font-medium" placeholder="${admin ? 'Kosongkan jika tidak diubah' : ''}">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-900 mb-2">Status</label>
+                <select name="status" class="w-full px-4 py-2.5 border border-gray-300 rounded-xl font-medium">
+                  <option value="aktif" ${admin?.status === 'aktif' || !admin ? 'selected' : ''}>Aktif</option>
+                  <option value="nonaktif" ${admin?.status === 'nonaktif' ? 'selected' : ''}>Nonaktif</option>
+                </select>
+              </div>
+              <div class="flex gap-3 pt-4">
+                <button type="button" class="flex-1 px-4 py-2.5 border-2 border-gray-300 rounded-xl hover:bg-gray-50 font-bold transition-colors" onclick="document.querySelectorAll('.modal-overlay').forEach(el => el.remove())">Batal</button>
+                <button type="submit" class="flex-1 btn-primary">${admin ? 'Update' : 'Simpan'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('beforeend', form);
+      document.getElementById('adminForm')?.addEventListener('submit', handleAdminSubmit);
+    }
+
+    // ==================== FORM HANDLERS ====================
+    async function handleStudentSubmit(e) {
+      e.preventDefault();
+      const form = e.target;
+      const id = form.id?.value;
+
+      const data = {
+        type: 'student',
+        nisn: form.nisn.value,
+        name: form.name.value,
+        gender: form.gender.value,
+        class_id: form.class_id.value,
+        birthplace: form.birthplace.value,
+        birthdate: form.birthdate.value,
+        parent_name: form.parent_name.value
+      };
+
+      if (id) {
+        const existing = getStudents().find(s => s.__backendId === id);
+        if (existing) {
+          Object.assign(existing, data);
+          await window.dataSdk.update(existing);
+        }
+      } else {
+        data.created_at = new Date().toISOString();
+        await window.dataSdk.create(data);
+      }
+
+      document.querySelectorAll('.modal-overlay').forEach(el => el.remove());
+      render();
+      showToast(`${data.name} berhasil ${id ? 'diupdate' : 'ditambahkan'}! ✓`);
+    }
+
+    async function handleTeacherSubmit(e) {
+      e.preventDefault();
+      const form = e.target;
+      const id = form.id?.value;
+
+      const data = {
+        type: 'user',
+        role: 'teacher',
+        nip: form.nip.value,
+        name: form.name.value,
+        email: form.email.value,
+        password: form.password.value || undefined,
+        assigned_class: form.assigned_class.value,
+        status: form.status.value
+      };
+
+      if (id) {
+        const existing = getTeachers().find(t => t.__backendId === id);
+        if (existing) {
+          Object.assign(existing, data);
+          if (!form.password.value) delete existing.password;
+          await window.dataSdk.update(existing);
+        }
+      } else {
+        data.created_at = new Date().toISOString();
+        await window.dataSdk.create(data);
+      }
+
+      document.querySelectorAll('.modal-overlay').forEach(el => el.remove());
+      render();
+      showToast(`${data.name} berhasil ${id ? 'diupdate' : 'ditambahkan'}! ✓`);
+    }
+
+    async function handleClassSubmit(e) {
+      e.preventDefault();
+      const form = e.target;
+      const id = form.id?.value;
+
+      const data = {
+        type: 'class',
+        grade: form.grade.value,
+        parallel: form.parallel.value,
+        homeroom_teacher: form.homeroom_teacher.value
+      };
+
+      if (id) {
+        const existing = getClasses().find(c => c.__backendId === id);
+        if (existing) {
+          Object.assign(existing, data);
+          await window.dataSdk.update(existing);
+        }
+      } else {
+        data.created_at = new Date().toISOString();
+        await window.dataSdk.create(data);
+      }
+
+      document.querySelectorAll('.modal-overlay').forEach(el => el.remove());
+      render();
+      showToast(`Kelas berhasil ${id ? 'diupdate' : 'ditambahkan'}! ✓`);
+    }
+
+    async function handleSubjectSubmit(e) {
+      e.preventDefault();
+      const form = e.target;
+      const id = form.id?.value;
+
+      const checkedClasses = Array.from(form.querySelectorAll('input[name="classes"]:checked')).map(cb => cb.value);
+
+      const data = {
+        type: 'subject',
+        code: form.code.value,
+        name_subject: form.name_subject.value,
+        classes: checkedClasses.join(',')
+      };
+
+      if (id) {
+        const existing = getSubjects().find(s => s.__backendId === id);
+        if (existing) {
+          Object.assign(existing, data);
+          await window.dataSdk.update(existing);
+        }
+      } else {
+        data.created_at = new Date().toISOString();
+        await window.dataSdk.create(data);
+      }
+
+      document.querySelectorAll('.modal-overlay').forEach(el => el.remove());
+      render();
+      showToast(`${data.name_subject} berhasil ${id ? 'diupdate' : 'ditambahkan'}! ✓`);
+    }
+
+    async function handleAdminSubmit(e) {
+      e.preventDefault();
+      const form = e.target;
+      const id = form.id?.value;
+
+      const data = {
+        type: 'user',
+        role: 'admin',
+        name: form.name.value,
+        email: form.email.value,
+        password: form.password.value || undefined,
+        status: form.status.value
+      };
+
+      if (id) {
+        const existing = getAdmins().find(a => a.__backendId === id);
+        if (existing) {
+          Object.assign(existing, data);
+          if (!form.password.value) delete existing.password;
+          await window.dataSdk.update(existing);
+        }
+      } else {
+        data.created_at = new Date().toISOString();
+        await window.dataSdk.create(data);
+      }
+
+      document.querySelectorAll('.modal-overlay').forEach(el => el.remove());
+      render();
+      showToast(`${data.name} berhasil ${id ? 'diupdate' : 'ditambahkan'}! ✓`);
+    }
+
+    async function handleSchoolSubmit(e) {
+      e.preventDefault();
+      const form = e.target;
+
+      const data = {
+        type: 'school_identity',
+        school_name: form.school_name.value,
+        npsn: form.npsn.value,
+        address: form.address.value,
+        principal: form.principal.value,
+        academic_year: form.academic_year.value,
+        semester: form.semester.value
+      };
+
+      const existing = allData.find(d => d.type === 'school_identity');
+      if (existing) {
+        Object.assign(existing, data);
+        await window.dataSdk.update(existing);
+      } else {
+        data.created_at = new Date().toISOString();
+        await window.dataSdk.create(data);
+      }
+
+      showToast('Identitas sekolah berhasil disimpan! ✓');
+    }
+
+    // ==================== IMPORT/EXPORT ====================
+    function handleImportStudents(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        try {
+          let data = [];
+
+          if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+            const arrayBuffer = event.target.result;
+            const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            data = XLSX.utils.sheet_to_json(firstSheet);
+          } else {
+            const content = event.target.result;
+            const lines = content.split('\n').filter(line => line.trim());
+            
+            if (lines.length < 2) {
+              showToast('File tidak valid', 'error');
+              return;
+            }
+
+            const delimiters = [',', ';', '|', '\t'];
+            let delimiter = ',';
+            const firstLine = lines[0];
+            for (const delim of delimiters) {
+              if (firstLine.includes(delim)) {
+                delimiter = delim;
+                break;
+              }
+            }
+
+            const headers = lines[0].split(delimiter).map(h => h.trim().toLowerCase());
+            
+            for (let i = 1; i < lines.length; i++) {
+              const values = lines[i].split(delimiter).map(v => v.trim());
+              const row = {};
+              headers.forEach((header, idx) => {
+                row[header] = values[idx] || '';
+              });
+              data.push(row);
+            }
+          }
+
+          if (data.length === 0) {
+            showToast('File kosong atau format tidak sesuai', 'error');
+            return;
+          }
+
+          const headerMap = {};
+          const headers = Object.keys(data[0]).map(h => h.toLowerCase());
+          
+          const nisnHeaders = ['nisn', 'nis', 'nomor induk siswa nasional', 'no. nisn'];
+          const nameHeaders = ['nama', 'nama siswa', 'nama lengkap', 'nama murid'];
+          const genderHeaders = ['gender', 'jenis kelamin', 'l/p', 'sex'];
+          const classHeaders = ['kelas', 'kls', 'tingkat'];
+          const birthplaceHeaders = ['tempat lahir', 'tempat_lahir', 'birthplace'];
+          const birthdateHeaders = ['tanggal lahir', 'tanggal_lahir', 'birthdate', 'tgl lahir'];
+          const parentHeaders = ['orang tua', 'orang_tua', 'parent', 'nama orang tua'];
+
+          for (const header of headers) {
+            if (nisnHeaders.some(h => header.includes(h))) headerMap.nisn = header;
+            if (nameHeaders.some(h => header.includes(h))) headerMap.name = header;
+            if (genderHeaders.some(h => header.includes(h))) headerMap.gender = header;
+            if (classHeaders.some(h => header.includes(h))) headerMap.class = header;
+            if (birthplaceHeaders.some(h => header.includes(h))) headerMap.birthplace = header;
+            if (birthdateHeaders.some(h => header.includes(h))) headerMap.birthdate = header;
+            if (parentHeaders.some(h => header.includes(h))) headerMap.parent = header;
+          }
+
+          if (!headerMap.nisn || !headerMap.name) {
+            showToast('Kolom NISN dan NAMA wajib ada', 'error');
+            return;
+          }
+
+          let imported = 0;
+          let skipped = 0;
+          const existingNisn = new Set(getStudents().map(s => s.nisn));
+          const classes = getClasses();
+
+          for (const row of data) {
+            const nisn = row[headerMap.nisn]?.toString().trim();
+            const name = row[headerMap.name]?.toString().trim();
+
+            if (!nisn || !name) {
+              skipped++;
+              continue;
+            }
+
+            if (existingNisn.has(nisn)) {
+              skipped++;
+              continue;
+            }
+
+            let classId = '';
+            if (headerMap.class && row[headerMap.class]) {
+              const className = row[headerMap.class].toString().trim();
+              const matchedClass = classes.find(c => 
+                className.toLowerCase().includes(c.grade.toLowerCase()) ||
+                className === `${c.grade}${c.parallel || ''}`
+              );
+              if (matchedClass) classId = matchedClass.__backendId;
+            }
+
+            const result = await window.dataSdk.create({
+              type: 'student',
+              nisn,
+              name,
+              gender: headerMap.gender && row[headerMap.gender] ? row[headerMap.gender].toString().charAt(0).toUpperCase() : 'L',
+              class_id: classId,
+              birthplace: headerMap.birthplace ? row[headerMap.birthplace]?.toString().trim() || '' : '',
+              birthdate: headerMap.birthdate ? row[headerMap.birthdate]?.toString().trim() || '' : '',
+              parent_name: headerMap.parent ? row[headerMap.parent]?.toString().trim() || '' : '',
+              created_at: new Date().toISOString()
+            });
+
+            if (result.isOk) {
+              imported++;
+              existingNisn.add(nisn);
+            }
+          }
+
+          render();
+          const message = skipped > 0 
+            ? `${imported} siswa diimport, ${skipped} duplikat/kosong diabaikan 📥`
+            : `${imported} siswa berhasil diimport! 📥`;
+          showToast(message);
+        } catch (err) {
+          showToast('Error membaca file: ' + err.message, 'error');
+          console.error('Import error:', err);
+        }
+      };
+
+      if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+        reader.readAsArrayBuffer(file);
+      } else {
+        reader.readAsText(file);
+      }
+    }
+
+    async function exportStudents() {
+      const students = getStudents();
+      if (students.length === 0) {
+        showToast('Tidak ada data siswa', 'warning');
+        return;
+      }
+
+      const data = [['No', 'NISN', 'Nama', 'L/P', 'Kelas', 'Tempat Lahir', 'Tanggal Lahir', 'Orang Tua']];
+      students.forEach((s, i) => {
+        data.push([i + 1, s.nisn, s.name, s.gender, getClassName(s.class_id), s.birthplace || '', s.birthdate || '', s.parent_name || '']);
+      });
+
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Siswa');
+      
+      const timestamp = new Date().toISOString().split('T')[0];
+      XLSX.writeFile(wb, `data_siswa_${timestamp}.xlsx`);
+      showToast('Data berhasil diekspor! 📤');
+    }
+
+    function downloadBackup() {
+      const school = getSchoolIdentity();
+      const backup = {
+        version: '1.0',
+        created_at: new Date().toISOString(),
+        school_name: school.school_name,
+        settings: settings,
+        data: allData
+      };
+
+      const json = JSON.stringify(backup, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      a.download = `backup_sekolah_${timestamp}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      showToast('Backup berhasil didownload! 💾');
+    }
+
+    async function handleRestore(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        try {
+          const backup = JSON.parse(event.target.result);
+
+          if (!backup.data || !Array.isArray(backup.data)) {
+            showToast('Format backup tidak valid', 'error');
+            return;
+          }
+
+          if (!confirm(`Restore backup dari ${backup.school_name}?\nSemua data saat ini akan diganti!`)) return;
+
+          for (const item of allData) {
+            await window.dataSdk.delete(item);
+          }
+
+          for (const item of backup.data) {
+            const { __backendId, ...rest } = item;
+            await window.dataSdk.create(rest);
+          }
+
+          if (backup.settings) {
+            settings = { ...settings, ...backup.settings };
+            saveSettings();
+            applySettings();
+          }
+
+          render();
+          showToast('Data berhasil direstore! ✓');
+        } catch (err) {
+          showToast('Error: ' + err.message, 'error');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // ==================== INIT ====================
+    const dataHandler = {
+      onDataChanged(data) {
+        allData = data;
+        if (currentUser) render();
+      }
+    };
+
+    async function init() {
+      loadSettings();
+      checkAuth();
+
+      if (window.dataSdk) {
+        await window.dataSdk.init(dataHandler);
+      }
+
+      if (window.elementSdk) {
+        window.elementSdk.init({
+          defaultConfig: config,
+          onConfigChange: (cfg) => { config = { ...config, ...cfg }; },
+          mapToCapabilities: () => ({ recolorables: [], borderables: [], fontEditable: undefined, fontSizeable: undefined }),
+          mapToEditPanelValues: () => new Map([['app_title', config.app_title]])
+        });
+      }
+
+      render();
+    }
+
+    init().catch(e => console.error('Error:', e));
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c5fefb580f8ea82',t:'MTc2OTc2NTI3Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
